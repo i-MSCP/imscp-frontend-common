@@ -20,6 +20,8 @@
 
 namespace iMSCP\Frontend\Common;
 
+use Zend\ModuleManager\Feature\ConfigProviderInterface;
+
 /**
  * Class Module
  * @package iMSCP\Frontend\Common
