@@ -20,19 +20,52 @@
 
 namespace iMSCP\Frontend\Common;
 
+use Zend\Config;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
+use Zend\ModuleManager\Feature\InitProviderInterface;
+use Zend\ModuleManager\ModuleEvent;
+use Zend\ModuleManager\ModuleManagerInterface;
 
 /**
  * Class Module
  * @package iMSCP\Frontend\Common
  */
-class Module implements ConfigProviderInterface
+class Module implements ConfigProviderInterface, InitProviderInterface
 {
+    /**
+     * @inheritdoc
+     */
+    public function init(ModuleManagerInterface $moduleManager)
+    {
+        $events = $moduleManager->getEventManager();
+
+        // Registering a listener at default priority, 1, which will trigger
+        // after the ConfigListener merges config.
+        $events->attach(ModuleEvent::EVENT_MERGE_CONFIG, [$this, 'onMergeConfig']);
+    }
+
     /**
      * @inheritdoc
      */
     public function getConfig()
     {
         return include __DIR__ . '/../config/module.config.php';
+    }
+
+    /**
+     * Merge master i-MSCP configuration
+     *
+     * @param ModuleEvent $event
+     */
+    public function onMergeConfig(ModuleEvent $event)
+    {
+        $configListener = $event->getConfigListener();
+        $config = $configListener->getMergedConfig(false);
+        $confDir = getenv('IMSCP_CONF_DIR') ?: $config['imscp']['CONF_DIR'] ?? '/etc/imscp';
+
+        // Load settings from the master i-MSCP configuration file (imscp.conf).
+        $reader = new Config\Reader\JavaProperties('=', Config\Reader\JavaProperties::WHITESPACE_TRIM);
+        $config['imscp'] = $reader->fromFile($confDir . '/imscp.conf');
+        $configListener->setMergedConfig($config);
     }
 }

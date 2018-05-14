@@ -1,3 +1,9 @@
+# PhpStorm
+.idea/
+
 # Composer files
 composer.phar
 vendor/
+
+# Unit testing
+phpunit.xml

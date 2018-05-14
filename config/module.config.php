@@ -20,8 +20,74 @@
 
 namespace iMSCP\Frontend\Common;
 
+use Doctrine\DBAL\Driver\PDOMySql\Driver;
+use iMSCP\Frontend\Common\Factory\PDOFactory;
+use Zend\Session\Storage\SessionArrayStorage;
+use Zend\Session\Validator\HttpUserAgent;
+use Zend\Session\Validator\RemoteAddr;
+
 return [
+    // i-MSCP configuration
+    'imscp'              => [
+        'CONF_DIR' => '/etc/imscp',
+    ],
+    // Session configuration
+    'session_config'     => [
+        'name'                   => 'iMSCP_Session',
+        'use_cookies'            => true,
+        'use_only_cookies'       => true,
+        'cookie_httponly'        => true,
+        'cookie_path'            => '/',
+        'cookie_lifetime'        => 0,
+        'use_trans_sid'          => false,
+        'gc_probability'         => 1,
+        'gc_divisor'             => 100,
+        'gc_maxlifetime'         => 1440,
+        'save_path'              => 'data/sessions',
+        'use_strict_mode'        => true,
+        'sid_bits_per_character' => 5,
+    ],
+    // Session manager configuration
+    'session_manager'    => [
+        // Session validators (used for security)
+        'validators' => [
+            RemoteAddr::class,
+            HttpUserAgent::class,
+        ]
+    ],
+    // Session storage configuration
+    'session_storage'    => [
+        'type' => SessionArrayStorage::class,
+    ],
+    // Default session container
     'session_containers' => [
         'CommonSessionContainer',
+    ],
+    // Service manager configuration
+    'service_manager'    => [
+        'factories' => [
+            \PDO::class => PDOFactory::class,
+        ]
+    ],
+    // Doctrine configuration
+    'doctrine'           => [
+        'connection'               => [
+            // default connection name
+            'orm_default' => [
+                'driverClass'            => Driver::class,
+                'pdo'                    => \PDO::class,
+                'doctrine_type_mappings' => [
+                    'enum' => 'string',
+                ],
+            ],
+        ],
+        'migrations_configuration' => [
+            'orm_default' => [
+                'directory' => 'data/migrations',
+                'name'      => 'Doctrine Database Migrations',
+                'namespace' => 'iMSCP\Frontend\Migration',
+                'table'     => 'migrations',
+            ],
+        ],
     ],
 ];
